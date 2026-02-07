@@ -8,7 +8,11 @@ import 'package:pos_inventory/features/post_transaction/logic/thermal_printer_se
 import 'package:sqflite/sqlite_api.dart';
 
 class PaymentPage extends StatefulWidget {
-  const PaymentPage({super.key, required this.transaction, required this.cartController});
+  const PaymentPage({
+    super.key,
+    required this.transaction,
+    required this.cartController,
+  });
   final PendingTransaction transaction;
   final CartController cartController;
 
@@ -22,11 +26,11 @@ class _PaymentPageState extends State<PaymentPage> {
   bool isLoading = false;
   int get kembalian => terimaUang - widget.transaction.totalAmount;
 
-void _tambahUang(int uang) {
-  setState(() {
-    terimaUang += uang;
-  });
-}
+  void _tambahUang(int uang) {
+    setState(() {
+      terimaUang += uang;
+    });
+  }
 
   Future<void> prosesPembayaran() async {
     if (kembalian < 0) return;
@@ -34,7 +38,10 @@ void _tambahUang(int uang) {
     setState(() => isLoading = true);
 
     // Kirim terimaUang ke controller
-    final success = await controller.prosesPembayaran(widget.transaction, terimaUang);
+    final success = await controller.prosesPembayaran(
+      widget.transaction,
+      terimaUang,
+    );
 
     setState(() => isLoading = false);
 
@@ -43,19 +50,37 @@ void _tambahUang(int uang) {
 
       final printerService = ThermalPrinterService();
       final db = DatabaseHelper.instance;
-      final trxFinal = await db.getTransactionDetail(widget.transaction.trxCode);
+      final trxFinal = await db.getTransactionDetail(
+        widget.transaction.trxCode,
+      );
       if (trxFinal != null) {
         await printerService.autoPrint58mm(trxFinal);
       }
-      
+
+      // reset cart
+      widget.cartController.clearCart();
+
       // Kembali ke halaman sebelumnya dengan hasil true
       // Navigator.pop(context, true);
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PostTransactionPage( trxCode:widget.transaction.trxCode, cartController: widget.cartController)));
+      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PostTransactionPage( trxCode:widget.transaction.trxCode, cartController: widget.cartController)));
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PostTransactionPage(
+            trxCode: widget.transaction.trxCode,
+            cartController: widget.cartController,
+          ),
+        ),
+        (route) => route.isFirst,
+      );
     } else {
       if (!mounted) return;
       showDialog(
-          context: context,
-          builder: (_) => const AlertDialog(content: Text('Gagal memproses pembayaran')));
+        context: context,
+        builder: (_) =>
+            const AlertDialog(content: Text('Gagal memproses pembayaran')),
+      );
     }
   }
 
@@ -140,11 +165,11 @@ void _tambahUang(int uang) {
       ),
     );
   }
+
   Widget _moneyButton(int amount) {
     return ElevatedButton(
       onPressed: () => _tambahUang(amount),
       child: Text("+Rp $amount"),
     );
   }
-
-  }
+}
