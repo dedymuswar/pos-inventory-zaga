@@ -1,0 +1,8 @@
+Analyzing pos_inventory...                                      
+
+   info • The imported package 'path' isn't a dependency of the importing package • lib/core/database/database_helper.dart:2:8 • depend_on_referenced_packages
+warning • Unused import: 'package:sqflite/sqflite.dart' • lib/features/products/logic/product_service.dart:1:8 • unused_import
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/products/ui/widgets/product_form_modal.dart:141:17 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/features/products/ui/widgets/product_table.dart:16:13 • deprecated_member_use
+   info • 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre • lib/features/products/ui/widgets/product_table.dart:16:69 • deprecated_member_use
+
