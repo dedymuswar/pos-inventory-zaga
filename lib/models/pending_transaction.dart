@@ -1,4 +1,4 @@
-import 'package:pos_inventory/features/cart/model/cart_item.dart';
+import 'package:pos_inventory/models/cart_item.dart';
 
 class PendingTransaction {
   final String trxCode;

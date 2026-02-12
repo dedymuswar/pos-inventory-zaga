@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pos_inventory/core/database/database_helper.dart';
-import 'package:pos_inventory/features/cart/model/cart_item.dart';
-import 'package:pos_inventory/features/products/data/product_model.dart';
+import 'package:pos_inventory/models/cart_item.dart';
+import 'package:pos_inventory/models/product_model.dart';
 
 class CartController extends ChangeNotifier {
   final List<CartItem> _items = [];

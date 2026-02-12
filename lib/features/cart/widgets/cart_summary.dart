@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class TransactionSummary extends StatelessWidget {
-  const TransactionSummary({
+class CartSummary extends StatelessWidget {
+  const CartSummary({
     super.key,
     required this.subtotal,
     required this.discount,

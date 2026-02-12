@@ -1,6 +1,6 @@
 
 import '../../../core/database/database_helper.dart';
-import '../data/product_model.dart';
+import '../../../models/product_model.dart';
 
 class ProductService {
   final dbHelper = DatabaseHelper.instance;

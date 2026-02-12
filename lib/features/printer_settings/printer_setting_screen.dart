@@ -1,16 +1,16 @@
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:pos_inventory/features/printer/logic/printer_setting_service.dart';
+import 'package:pos_inventory/features/printer_settings/logic/printer_setting_service.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 
-class PrinterSettingPage extends StatefulWidget {
-  const PrinterSettingPage({super.key});
+class PrinterSettingScreen extends StatefulWidget {
+  const PrinterSettingScreen({super.key});
 
   @override
-  State<PrinterSettingPage> createState() => _PrinterSettingPageState();
+  State<PrinterSettingScreen> createState() => _PrinterSettingScreenState();
 }
 
-class _PrinterSettingPageState extends State<PrinterSettingPage> {
+class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
   List<BluetoothInfo> devices = [];
   BluetoothInfo? selectedDevice;
   bool autoPrint = false;

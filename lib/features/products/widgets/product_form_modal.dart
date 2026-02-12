@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../logic/product_service.dart';
-import '../data/product_model.dart';
-import '../../cart/widgets/barcode_scanner_page.dart';
+import '../logic/product_controller.dart';
+import '../../../models/product_model.dart';
+import '../../cart/barcode_scanner_page.dart';
 
 class ProductFormModal extends StatefulWidget {
   const ProductFormModal({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pos_inventory/features/printer/pages/printer_setting_page.dart';
-import 'package:pos_inventory/features/products/pages/product_page.dart';
-import 'package:pos_inventory/features/transaction/pages/transaction_page.dart';
+import 'package:pos_inventory/features/printer_settings/printer_setting_screen.dart';
+import 'package:pos_inventory/features/products/product_screen.dart';
+import 'package:pos_inventory/features/list_transaction/list_transaction_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -24,7 +24,7 @@ class AppDrawer extends StatelessWidget {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ProductPage()),
+                MaterialPageRoute(builder: (_) => const ProductScreen()),
               );
             },
           ),
@@ -34,7 +34,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Riwayat Transaksi'),
             onTap: (){
               Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const TransactionPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ListTransactionScreen()));
             } ,
           ),
           const Divider(),
@@ -43,7 +43,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Pengaturan printer'),
             onTap: (){
               Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const PrinterSettingPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const PrinterSettingScreen()));
             } ,
           ),
           const Divider(),

@@ -1,6 +1,6 @@
-import 'package:pos_inventory/features/payment/model/pending_transaction.dart';
-import 'package:pos_inventory/features/post_transaction/models/transaction_detail.dart';
-import 'package:pos_inventory/features/products/data/product_model.dart';
+import 'package:pos_inventory/models/pending_transaction.dart';
+import 'package:pos_inventory/models/transaction_detail.dart';
+import 'package:pos_inventory/models/product_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 

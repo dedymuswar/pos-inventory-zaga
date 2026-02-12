@@ -1,6 +1,6 @@
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
-import 'package:pos_inventory/features/post_transaction/models/transaction_detail.dart';
+import 'package:pos_inventory/models/transaction_detail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThermalPrinterService {

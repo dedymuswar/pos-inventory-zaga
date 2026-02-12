@@ -1,9 +1,9 @@
 
 
-import 'package:pos_inventory/features/cart/model/cart_item.dart';
-import 'package:pos_inventory/features/payment/model/pending_transaction.dart';
+import 'package:pos_inventory/models/cart_item.dart';
+import 'package:pos_inventory/models/pending_transaction.dart';
 
-class TransactionMapper {
+class CartMapper {
   /// Mapping dari Cart → PendingTransaction
   static PendingTransaction fromCart({
     required List<CartItem> cartItems,

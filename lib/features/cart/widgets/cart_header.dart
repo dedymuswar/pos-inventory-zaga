@@ -2,16 +2,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class TransactionHeader extends StatefulWidget {
-  const TransactionHeader({super.key, this.kodeTransaksi, this.kasir});
+class CartHeader extends StatefulWidget {
+  const CartHeader({super.key, this.kodeTransaksi, this.kasir});
   final kodeTransaksi;
   final kasir;
 
   @override
-  State<TransactionHeader> createState() => _TransactionHeaderState();
+  State<CartHeader> createState() => _CartHeaderState();
 }
 
-class _TransactionHeaderState extends State<TransactionHeader> {
+class _CartHeaderState extends State<CartHeader> {
   late Timer _timer;
   DateTime _currentTime = DateTime.now();
 

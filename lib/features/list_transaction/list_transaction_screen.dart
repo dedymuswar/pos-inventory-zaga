@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:pos_inventory/features/transaction/logic/transaction_controller.dart';
-import 'package:pos_inventory/features/transaction/model/transaction_model.dart';
+import 'package:pos_inventory/features/list_transaction/logic/list_transaction_controller.dart';
+import 'package:pos_inventory/models/transaction_model.dart';
 
-class TransactionPage extends StatefulWidget {
-  const TransactionPage({super.key});
+class ListTransactionScreen extends StatefulWidget {
+  const ListTransactionScreen({super.key});
 
   @override
-  State<TransactionPage> createState() => _TransactionPageState();
+  State<ListTransactionScreen> createState() => _TransactionScreenState();
 }
 
-class _TransactionPageState extends State<TransactionPage> {
-  final TransactionController _controller = TransactionController();
+class _TransactionScreenState extends State<ListTransactionScreen> {
+  final ListTransactionController _controller = ListTransactionController();
   late Future<List<TransactionModel>> _transactionsFuture;
 
   @override

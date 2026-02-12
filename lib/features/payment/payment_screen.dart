@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:pos_inventory/core/database/database_helper.dart';
 import 'package:pos_inventory/features/cart/logic/cart_controller.dart';
-import 'package:pos_inventory/features/payment/model/pending_transaction.dart';
+import 'package:pos_inventory/models/pending_transaction.dart';
 import 'package:pos_inventory/features/payment/logic/payment_controller.dart';
-import 'package:pos_inventory/features/post_transaction/pages/post_transaction_page.dart';
+import 'package:pos_inventory/features/post_transaction/post_transaction_screen.dart';
 import 'package:pos_inventory/features/post_transaction/logic/thermal_printer_service.dart';
 import 'package:sqflite/sqlite_api.dart';
 
-class PaymentPage extends StatefulWidget {
-  const PaymentPage({
+class PaymentScreen extends StatefulWidget {
+  const PaymentScreen({
     super.key,
     required this.transaction,
     required this.cartController,
@@ -17,10 +17,10 @@ class PaymentPage extends StatefulWidget {
   final CartController cartController;
 
   @override
-  State<PaymentPage> createState() => _PaymentPageState();
+  State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentPageState extends State<PaymentPage> {
+class _PaymentScreenState extends State<PaymentScreen> {
   final PaymentController controller = PaymentController();
   int terimaUang = 0;
   bool isLoading = false;
@@ -62,12 +62,12 @@ class _PaymentPageState extends State<PaymentPage> {
 
       // Kembali ke halaman sebelumnya dengan hasil true
       // Navigator.pop(context, true);
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PostTransactionPage( trxCode:widget.transaction.trxCode, cartController: widget.cartController)));
+      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => PostTransactionScreen( trxCode:widget.transaction.trxCode, cartController: widget.cartController)));
 
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (_) => PostTransactionPage(
+          builder: (_) => PostTransactionScreen(
             trxCode: widget.transaction.trxCode,
             cartController: widget.cartController,
           ),

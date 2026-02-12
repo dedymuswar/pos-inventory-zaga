@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:pos_inventory/features/cart/logic/cart_controller.dart';
-import 'package:pos_inventory/features/payment/pages/payment_page.dart';
+import 'package:pos_inventory/features/payment/payment_screen.dart';
 import 'package:pos_inventory/features/products/widgets/scan_barcode_page.dart';
-import 'package:pos_inventory/features/products/widgets/app_drawer.dart';
-import 'package:pos_inventory/features/cart/widgets/transaction_header.dart';
-import 'package:pos_inventory/features/cart/widgets/transaction_summary.dart';
-import 'package:pos_inventory/features/cart/widgets/transaksi_item.dart';
-import 'package:pos_inventory/features/cart/logic/transaction_mapper.dart';
+import 'package:pos_inventory/core/widgets/app_drawer.dart';
+import 'package:pos_inventory/features/cart/widgets/cart_header.dart';
+import 'package:pos_inventory/features/cart/widgets/cart_summary.dart';
+import 'package:pos_inventory/features/cart/widgets/cart_item_widget.dart';
+import 'package:pos_inventory/features/cart/logic/cart_mapper.dart';
 
-class TransaksiPage extends StatefulWidget {
-  const TransaksiPage({super.key});
+class CartScreen extends StatefulWidget {
+  const CartScreen({super.key});
 
   @override
-  State<TransaksiPage> createState() => _TransaksiPageState();
+  State<CartScreen> createState() => _CartScreenState();
 }
 
-class _TransaksiPageState extends State<TransaksiPage> {
+class _CartScreenState extends State<CartScreen> {
   final CartController _controller = CartController();
   final namaKasir = "ZAYYAN";
   Future<void> _bayarSekarang() async {
@@ -27,7 +27,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
     }
 
     // Gunakan _controller langsung karena ini adalah local state
-    final pendingTrx = TransactionMapper.fromCart(
+    final pendingTrx = CartMapper.fromCart(
       cartItems: _controller.items,
       cashierId: "KSR01",
       cashierName: namaKasir,
@@ -37,7 +37,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PaymentPage(transaction: pendingTrx, cartController: _controller),
+        builder: (_) => PaymentScreen(transaction: pendingTrx, cartController: _controller),
       ),
     );
 
@@ -104,7 +104,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
         builder: (context, child) {
           return Column(
             children: [
-              TransactionHeader(kasir: namaKasir, ),
+              CartHeader(kasir: namaKasir, ),
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(16),
@@ -122,7 +122,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
                         )
                       : ListView.builder(
                           itemCount: _controller.items.length,
-                          itemBuilder: (context, index) => TransaksiItem(
+                          itemBuilder: (context, index) => CartItemWidget(
                             item: _controller.items[index],
                             onAdd: () => _controller.updateQty(index, 1),
                             onRemove: () => _controller.updateQty(index, -1),
@@ -130,7 +130,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
                         ),
                 ),
               ),
-              TransactionSummary(
+              CartSummary(
                 subtotal: _controller.subtotal,
                 discount: _controller.discount,
                 tax: _controller.tax,

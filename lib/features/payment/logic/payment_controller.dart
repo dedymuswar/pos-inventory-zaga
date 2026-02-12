@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_inventory/core/database/database_helper.dart';
-import 'package:pos_inventory/features/payment/model/pending_transaction.dart';
+import 'package:pos_inventory/models/pending_transaction.dart';
 
 class PaymentController extends ChangeNotifier {
   int _terimaUang = 0;

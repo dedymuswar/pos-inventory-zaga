@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import '../logic/product_service.dart';
-import '../data/product_model.dart';
-import '../widgets/product_form_modal.dart';
-import '../widgets/product_table.dart';
+import 'logic/product_controller.dart';
+import '../../models/product_model.dart';
+import 'widgets/product_form_modal.dart';
+import 'widgets/product_table.dart';
 
-class ProductPage extends StatefulWidget {
-  const ProductPage({super.key});
+class ProductScreen extends StatefulWidget {
+  const ProductScreen({super.key});
 
   @override
-  State<ProductPage> createState() => _ProductPageState();
+  State<ProductScreen> createState() => _ProductScreenState();
 }
 
-class _ProductPageState extends State<ProductPage> {
+class _ProductScreenState extends State<ProductScreen> {
   final ProductService _service = ProductService();
   List<Product> _products = [];
   bool _isLoading = true;

@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:pos_inventory/features/cart/logic/cart_controller.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:pos_inventory/core/database/database_helper.dart';
-import 'package:pos_inventory/features/post_transaction/pages/bluetooth_printer_page.dart';
+import 'package:pos_inventory/features/post_transaction/bluetooth_printer_page.dart';
 import 'package:pos_inventory/features/post_transaction/logic/thermal_printer_service.dart';
-import 'package:pos_inventory/features/post_transaction/models/transaction_detail.dart';
+import 'package:pos_inventory/models/transaction_detail.dart';
 
-class PostTransactionPage extends StatefulWidget {
-  PostTransactionPage({super.key, required this.trxCode, required this.cartController});
+class PostTransactionScreen extends StatefulWidget {
+  PostTransactionScreen({super.key, required this.trxCode, required this.cartController});
   final String trxCode;
   final CartController cartController;
 
   @override
-  State<PostTransactionPage> createState() => _PostTransactionPageState();
+  State<PostTransactionScreen> createState() => _PostTransactionScreenState();
 }
 
-class _PostTransactionPageState extends State<PostTransactionPage> {
+class _PostTransactionScreenState extends State<PostTransactionScreen> {
   Transactionfinal? trxDetail;
   bool isLoading = true;
 
