@@ -23,7 +23,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -69,6 +69,19 @@ class DatabaseHelper {
         FOREIGN KEY (transaction_id) REFERENCES transactions(id)
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE stock_movements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        qty INTEGER NOT NULL,
+        source TEXT NOT NULL,
+        reference TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (product_id) REFERENCES products(id)
+      )
+    ''');
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -97,6 +110,21 @@ class DatabaseHelper {
           qty INTEGER,
           subtotal INTEGER,
           FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+        )
+      ''');
+    }
+
+    if (oldVersion < 3) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS stock_movements (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          product_id INTEGER NOT NULL,
+          type TEXT NOT NULL,
+          qty INTEGER NOT NULL,
+          source TEXT NOT NULL,
+          reference TEXT,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (product_id) REFERENCES products(id)
         )
       ''');
     }
@@ -138,6 +166,26 @@ class DatabaseHelper {
       });
 
       for (final item in trx.items) {
+        final productResult = await txn.query(
+          'products',
+          columns: ['stock'],
+          where: 'id = ?',
+          whereArgs: [item.productId],
+          limit: 1,
+        );
+
+        if (productResult.isEmpty) {
+          throw Exception('Produk dengan id ${item.productId} tidak ditemukan');
+        }
+
+        final currentStock = (productResult.first['stock'] as int?) ?? 0;
+        if (currentStock < item.qty) {
+          throw Exception(
+            'Stok tidak cukup untuk produk ${item.productName}. '
+            'Tersedia: $currentStock, diminta: ${item.qty}',
+          );
+        }
+
         await txn.insert('transaction_items', {
           'transaction_id': trxId,
           'product_id': item.productId,
@@ -151,6 +199,15 @@ class DatabaseHelper {
           'UPDATE products SET stock = stock - ? WHERE id = ?',
           [item.qty, item.productId],
         );
+
+        await txn.insert('stock_movements', {
+          'product_id': item.productId,
+          'type': 'OUT',
+          'qty': item.qty,
+          'source': 'SALE',
+          'reference': trx.trxCode,
+          'created_at': trx.createdAt.toIso8601String(),
+        });
       }
     });
   }

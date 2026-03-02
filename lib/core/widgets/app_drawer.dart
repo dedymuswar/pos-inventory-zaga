@@ -38,15 +38,7 @@ class AppDrawer extends StatelessWidget {
             } ,
           ),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.receipt_long),
-            title: const Text('Pengaturan printer'),
-            onTap: (){
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const PrinterSettingScreen()));
-            } ,
-          ),
-          const Divider(),
+
         ],
       ),
     );
