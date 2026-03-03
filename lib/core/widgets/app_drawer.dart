@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:pos_inventory/features/printer_settings/printer_setting_screen.dart';
+import 'package:pos_inventory/features/auth/pages/login_page.dart';
 import 'package:pos_inventory/features/products/product_screen.dart';
 import 'package:pos_inventory/features/list_transaction/list_transaction_screen.dart';
+import 'package:pos_inventory/features/user/auth_controller.dart';
+import 'package:provider/provider.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
+    final auth = context.read<AuthController>();
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -38,7 +41,15 @@ class AppDrawer extends StatelessWidget {
             } ,
           ),
           const Divider(),
-
+          const Spacer(),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Logout', style: TextStyle(color: Colors.red),),
+            onTap: () {
+              auth.logout();
+              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginPage()), (route) => false);
+            },
+          )
         ],
       ),
     );

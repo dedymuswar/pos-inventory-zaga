@@ -7,6 +7,8 @@ import 'package:pos_inventory/features/cart/widgets/cart_header.dart';
 import 'package:pos_inventory/features/cart/widgets/cart_summary.dart';
 import 'package:pos_inventory/features/cart/widgets/cart_item_widget.dart';
 import 'package:pos_inventory/features/cart/logic/cart_mapper.dart';
+import 'package:pos_inventory/features/user/auth_controller.dart';
+import 'package:provider/provider.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -17,12 +19,15 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final CartController _controller = CartController();
-  final namaKasir = "ZAYYAN";
+
+  @override
   Future<void> _bayarSekarang() async {
+    final auth = context.read<AuthController>();
+    final namaKasir = auth.currentUser?.username ?? '-';
     if (_controller.items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Keranjang masih kosong')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Keranjang masih kosong')));
       return;
     }
 
@@ -37,7 +42,8 @@ class _CartScreenState extends State<CartScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PaymentScreen(transaction: pendingTrx, cartController: _controller),
+        builder: (_) =>
+            PaymentScreen(transaction: pendingTrx, cartController: _controller),
       ),
     );
 
@@ -45,7 +51,9 @@ class _CartScreenState extends State<CartScreen> {
     if (result == true) {
       _controller.clearCart();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pembayaran Berhasil')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Pembayaran Berhasil')));
     }
   }
 
@@ -80,7 +88,9 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
-
+    final namaKasir = context.select<AuthController, String>(
+      (auth) => auth.currentUser?.username ?? '-',
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text("Transaksi"),
@@ -104,11 +114,14 @@ class _CartScreenState extends State<CartScreen> {
         builder: (context, child) {
           return Column(
             children: [
-              CartHeader(kasir: namaKasir, ),
+              CartHeader(kasir: namaKasir),
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
