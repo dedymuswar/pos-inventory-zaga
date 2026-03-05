@@ -1,6 +1,6 @@
 # Flutter POS Inventory App ZAGA
 
-A Point of Sale (POS) and Inventory Management application built using Flutter and SQLite.
+A Point of Sale (POS) and Inventory Management ZAGA application built using Flutter and SQLite with the following features:
 
 ## Features
 - Product Management
