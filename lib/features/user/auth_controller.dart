@@ -1,21 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:pos_inventory/core/database/database_helper.dart';
 import 'package:pos_inventory/models/user_model.dart';
+import 'package:sqflite/sqflite.dart';
 
 class AuthController extends ChangeNotifier {
-  final List<AppUser> _users = [
-    AppUser(
-      id: '1',
-      username: 'admin',
-      password: 'admin',
-      role: UserRole.admin,
-    ),
-    AppUser(
-      id: '2',
-      username: 'kasir',
-      password: 'kasir',
-      role: UserRole.kasir,
-    ),
-  ];
+  List<AppUser> _users = [];
 
   AppUser? _currentUser;
 
@@ -24,16 +14,45 @@ class AuthController extends ChangeNotifier {
   bool get isLoggedIn => _currentUser != null;
   bool get isAdmin => _currentUser?.role == UserRole.admin;
 
-  String? login(String username, String password) {
-    try {
-      final user = _users.firstWhere(
-        (user) => user.username == username && user.password == password,
+  Future<void> loadUsers() async {
+    DatabaseHelper db = DatabaseHelper.instance;
+    final rows = await db.getAllUsers();
+    _users = rows.map((row) {
+      return AppUser(
+        id: row['id'].toString(),
+        username: row['username'] as String,
+        password: row['password'] as String,
+        role: (row['role'] == 'admin') ? UserRole.admin : UserRole.kasir,
       );
-      _currentUser = user;
+    }).toList();
+    notifyListeners();
+  }
+
+  Future<bool> login(String username, String password) async {
+    DatabaseHelper db = DatabaseHelper.instance;
+    try {
+      final row = await db.loginUser(
+        username: username.trim(),
+        password: password.trim(),
+      );
+      if (row == null) return false;
+
+      _currentUser = AppUser(
+        id: row['id'].toString(),
+        username: row['username'] as String,
+        password: row['password'] as String,
+        role: (row['role'] == 'admin') ? UserRole.admin : UserRole.kasir,
+      );
       notifyListeners();
-      return null;
-    } catch (e) {
-      return 'Username atau password salah';
+      return true;
+    } on DatabaseException catch (e, st) {
+      debugPrint('Database login error: $e');
+      debugPrintStack(stackTrace: st);
+      return false;
+    } catch (e, st) {
+      debugPrint('Unexpected login error: $e');
+      debugPrintStack(stackTrace: st);
+      return false;
     }
   }
 
@@ -42,61 +61,61 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
-  String? addUser({
+  Future<String?> addUser({
     required String username,
     required String password,
     required UserRole role,
-  }) {
-    final exists = _users.any((user) => user.username == username);
-    if (exists) {
-      return 'Username sudah digunakan';
-    }
-    _users.add(
-      AppUser(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+  }) async {
+    DatabaseHelper db = DatabaseHelper.instance;
+    try {
+      await db.insertUser(
         username: username,
         password: password,
-        role: role,
-      ),
-    );
-    notifyListeners();
-    return null;
+        role: role.name,
+      );
+      await loadUsers();
+      return null;
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) return 'Username sudah digunakan';
+      return 'Gagal menambah user';
+    }
   }
 
-  String? editUser({
+  Future<String?> editUser({
     required String id,
     required String username,
     required String password,
     required UserRole role,
-  }) {
-    final index = _users.indexWhere((user) => user.id == id);
-    if (index == -1) {
-      return 'User tidak ditemukan';
-    }
+  }) async {
+    try {
+      DatabaseHelper db = DatabaseHelper.instance;
+      await db.updateUser(
+        id: int.parse(id),
+        username: username,
+        password: password,
+        role: role.name,
+      );
 
-    // Cek duplikat username pada user lain (yang id-nya berbeda)
-    final duplicate = _users.any((user) => user.username == username && user.id != id);
-    if (duplicate) {
-      return 'Username sudah digunakan';
-    }
-    _users[index] = _users[index].copyWith(
-      username: username,
-      password: password,
-      role: role,
-    );
+      if (_currentUser?.id == id) {
+        _currentUser = _currentUser!.copyWith(
+          username: username.trim(),
+          password: password.trim(),
+          role: role,
+        );
+      }
 
-    if (_currentUser?.id == id) {
-      _currentUser = _users[index];
+      await loadUsers();
+      return null;
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) return 'Username sudah digunakan';
+      return 'Gagal mengubah user';
     }
-    notifyListeners();
-    return null;
   }
 
-  void deleteUser(String id) {
-    _users.removeWhere((user) => user.id == id);
-    if (_currentUser?.id == id) {
-      _currentUser = null;
-    }
-    notifyListeners();
+  Future<void> deleteUser(String id) async {
+    DatabaseHelper db = DatabaseHelper.instance;
+    await db.deleteUser(int.parse(id));
+    if (_currentUser?.id == id) _currentUser = null;
+    await loadUsers();
   }
 }

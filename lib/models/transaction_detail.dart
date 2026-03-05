@@ -1,8 +1,8 @@
 class TransactionDetail {
   final int id;
   final String trx_code;
-  final String cashierId;
-  final String cashierName;
+  final int cashierId;
+  final String? cashierName;
   final DateTime createdAt;
   final int total_amount;
   final int received_money;
@@ -13,7 +13,7 @@ class TransactionDetail {
     required this.id,
     required this.trx_code,
     required this.cashierId,
-    required this.cashierName,
+    this.cashierName,
     required this.createdAt,
     required this.total_amount,
     required this.received_money,
@@ -22,10 +22,13 @@ class TransactionDetail {
   });
 
   factory TransactionDetail.fromMap(Map<String, dynamic> map) {
+    final rawCashierId = map['cashier_id'];
     return TransactionDetail(
       id: map['id'],
       trx_code: map['trx_code'],
-      cashierId: map['cashier_id'],
+      cashierId: rawCashierId is int
+          ? rawCashierId
+          : int.tryParse(rawCashierId?.toString() ?? '') ?? 0,
       cashierName: map['cashier_name'],
       createdAt: DateTime.parse(map['created_at']),
       total_amount: map['total_amount'],
@@ -78,6 +81,4 @@ class Transactionfinal {
     required this.items,
   });
 }
-
-
 

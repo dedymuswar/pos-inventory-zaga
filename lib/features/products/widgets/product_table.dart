@@ -1,80 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:pos_inventory/features/products/widgets/barang_card.dart';
 import '../../../models/product_model.dart';
-
-class ProductDataSource extends DataGridSource {
-  ProductDataSource(
-    List<Product> products, {
-    required this.onRestock,
-    required this.onStockCard,
-  }) : _rows = products.map((p) {
-         final formatter = NumberFormat.currency(
-           locale: 'id_ID',
-           symbol: '',
-           decimalDigits: 0,
-         );
-
-         return DataGridRow(
-           cells: [
-             DataGridCell<String>(columnName: 'name', value: p.name),
-             DataGridCell<String>(
-               columnName: 'price',
-               value: formatter.format(p.price),
-             ),
-             DataGridCell<String>(
-               columnName: 'stock',
-               value: p.stock.toString(),
-             ),
-             DataGridCell<Product>(columnName: 'action', value: p),
-           ],
-         );
-       }).toList();
-
-  final void Function(Product product) onRestock;
-  final void Function(Product product) onStockCard;
-  final List<DataGridRow> _rows;
-
-  @override
-  List<DataGridRow> get rows => _rows;
-  @override
-  DataGridRowAdapter buildRow(DataGridRow row) {
-    return DataGridRowAdapter(
-      cells: row.getCells().map((cell) {
-        if (cell.columnName == 'action') {
-          final product = cell.value as Product;
-          return Align(
-            alignment: Alignment.center,
-            child: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                if (value == 'restock') {
-                  onRestock(product);
-                  return;
-                }
-                if (value == 'stock_card') {
-                  onStockCard(product);
-                }
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem<String>(value: 'restock', child: Text('Restock')),
-                PopupMenuItem<String>(
-                  value: 'stock_card',
-                  child: Text('Kartu Stok'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(cell.value.toString()),
-        );
-      }).toList(),
-    );
-  }
-}
 
 class ProductTable extends StatelessWidget {
   const ProductTable({
@@ -87,36 +14,36 @@ class ProductTable extends StatelessWidget {
   final List<Product> products;
   final void Function(Product product) onRestock;
   final void Function(Product product) onStockCard;
+  static final NumberFormat _priceFormatter = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
 
   @override
   Widget build(BuildContext context) {
-    return SfDataGrid(
-      source: ProductDataSource(
-        products,
-        onRestock: onRestock,
-        onStockCard: onStockCard,
-      ),
-      allowSorting: true,
-      columnWidthMode: ColumnWidthMode.auto,
-      columns: [
-        GridColumn(
-          columnName: 'name',
-          label: const Center(child: Text('Nama')),
-        ),
-        GridColumn(
-          columnName: 'price',
-          label: const Center(child: Text('Harga')),
-        ),
-        GridColumn(
-          columnName: 'stock',
-          label: const Center(child: Text('Stok')),
-        ),
-        GridColumn(
-          columnName: 'action',
-          width: 70,
-          label: const Center(child: Text('Aksi')),
-        ),
-      ],
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return BarangCard(
+          nama: product.name,
+          kode: product.barcode,
+          category: product.category,
+          stok: product.stock,
+          harga: _priceFormatter.format(product.price),
+          onSelectedAction: (value) {
+            if (value == 'restock') {
+              onRestock(product);
+              return;
+            }
+            if (value == 'stock_card') {
+              onStockCard(product);
+            }
+          },
+        );
+      },
     );
   }
 }

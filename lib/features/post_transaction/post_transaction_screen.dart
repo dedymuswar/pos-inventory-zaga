@@ -7,9 +7,13 @@ import 'package:pos_inventory/features/post_transaction/logic/thermal_printer_se
 import 'package:pos_inventory/models/transaction_detail.dart';
 
 class PostTransactionScreen extends StatefulWidget {
-  PostTransactionScreen({super.key, required this.trxCode, required this.cartController});
+  const PostTransactionScreen({
+    super.key,
+    required this.trxCode,
+    this.cartController,
+  });
   final String trxCode;
-  final CartController cartController;
+  final CartController? cartController;
 
   @override
   State<PostTransactionScreen> createState() => _PostTransactionScreenState();
@@ -32,7 +36,14 @@ class _PostTransactionScreenState extends State<PostTransactionScreen> {
   }
 
   void _finishTransaction() {
-    widget.cartController.clearCart();
+    final cartController = widget.cartController;
+    if (cartController != null) {
+      try {
+        cartController.clearCart();
+      } catch (e) {
+        debugPrint('Lewati clearCart karena controller sudah disposed: $e');
+      }
+    }
     // kembali ke halaman pertama
     Navigator.of(context).popUntil((route) =>route.isFirst);
 
@@ -46,9 +57,7 @@ class _PostTransactionScreenState extends State<PostTransactionScreen> {
     }
 
     final header = trxDetail!.header;
-    ;
     final items = trxDetail!.items;
-    ;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -197,8 +206,8 @@ class _PostTransactionScreenState extends State<PostTransactionScreen> {
         ),
         const SizedBox(height: 10),
         ElevatedButton(
-          child: const Text("TRANSAKSI BARU"),
           onPressed: _finishTransaction,
+          child: const Text("TRANSAKSI BARU"),
         ),
       ],
     );

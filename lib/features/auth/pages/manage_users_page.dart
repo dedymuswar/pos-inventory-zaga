@@ -5,67 +5,99 @@ import 'package:provider/provider.dart';
 
 class ManageUsersPage extends StatelessWidget {
   const ManageUsersPage({super.key});
+  static const Color _primaryBlue = Color(0xFF1D61E7);
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
 
     if (!auth.isLoggedIn) {
-      return const Scaffold(
-        body: Center(
-          child: Text('Anda belum login'),
-        ),
-      );
+      return const Scaffold(body: Center(child: Text('Anda belum login')));
     }
     if (!auth.isAdmin) {
       return const Scaffold(
-        body: Center(
-          child: Text('Anda tidak memiliki akses'),
-        ),
+        body: Center(child: Text('Anda tidak memiliki akses')),
       );
     }
 
-    
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Manage Users'),
-      actions: [
-        IconButton(onPressed: () => auth.logout(),
-        icon: const Icon(Icons.logout),
-        )
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        _showUserDialog(context);
-      },
-      child: const Icon(Icons.add),
-    ),
-    body: ListView.builder(
-      itemCount: auth.user.length,
-      itemBuilder: (context, index){
-      final user = auth.user[index];
-      return ListTile(
-        title: Text(user.username),
-        subtitle: Text(user.role.toString()),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              onPressed: () => _showUserDialog(context, user: user),
-              icon: const Icon(Icons.edit),
-            ),
-            IconButton(
-              onPressed: () => auth.deleteUser(user.id),
-              icon: const Icon(Icons.delete),
-            ),
-          ],
+        backgroundColor: _primaryBlue,
+        foregroundColor: Colors.white,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showUserDialog(context);
+        },
+        backgroundColor: _primaryBlue,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ListView.separated(
+          itemCount: auth.user.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final user = auth.user[index];
+            final roleLabel = user.role.name.toUpperCase();
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFEAF1FF), Color(0xFFDDE9FF)],
+                ),
+                border: Border.all(color: const Color(0xFFBBD0FF)),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                leading: const CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person_outline, color: _primaryBlue),
+                ),
+                title: Text(
+                  user.username,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    roleLabel,
+                    style: const TextStyle(
+                      color: Color(0xFF174FBF),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () => _showUserDialog(context, user: user),
+                      icon: const Icon(Icons.edit_outlined, color: _primaryBlue),
+                    ),
+                    IconButton(
+                      onPressed: () => auth.deleteUser(user.id),
+                      icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
-      );    
-    },
-    
-    ),
+      ),
     );
   }
 
@@ -78,50 +110,90 @@ class ManageUsersPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder(builder: (context, setLocal){
-          return AlertDialog(
-            title: Text(user == null ? 'Add User' : 'Edit User'),
-            content: Column(
+        return StatefulBuilder(
+          builder: (context, setLocal) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(user == null ? 'Add User' : 'Edit User'),
+              content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: usernameC,
-                    decoration: const InputDecoration(labelText: 'Username'),
+                    decoration: InputDecoration(
+                      labelText: 'Username',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: _primaryBlue),
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: passwordC,
-                    decoration: const InputDecoration(labelText: 'Password'),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: _primaryBlue),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<UserRole>(
                     value: role,
                     items: UserRole.values.map((r) {
-                      return DropdownMenuItem(
-                        value: r,
-                        child: Text(r.name),
-                      );
+                      return DropdownMenuItem(value: r, child: Text(r.name));
                     }).toList(),
                     onChanged: (v) => setLocal(() => role = v!),
-                    decoration: const InputDecoration(labelText: 'Role'),
+                    decoration: InputDecoration(
+                      labelText: 'Role',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: _primaryBlue),
+                      ),
+                    ),
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Batal'),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Color(0xFF334155)),
+                  ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () async {
                     String? error;
                     if (user == null) {
-                      error = auth.addUser(
+                      error = await auth.addUser(
                         username: usernameC.text.trim(),
                         password: passwordC.text,
                         role: role,
                       );
                     } else {
-                      error = auth.editUser(
+                      error = await auth.editUser(
                         id: user.id,
                         username: usernameC.text.trim(),
                         password: passwordC.text,
@@ -130,9 +202,9 @@ class ManageUsersPage extends StatelessWidget {
                     }
 
                     if (error != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(error)),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(error)));
                       return;
                     }
 
@@ -141,8 +213,9 @@ class ManageUsersPage extends StatelessWidget {
                   child: const Text('Simpan'),
                 ),
               ],
-          );
-        });
+            );
+          },
+        );
       },
     );
   }

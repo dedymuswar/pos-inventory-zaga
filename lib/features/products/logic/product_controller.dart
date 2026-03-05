@@ -21,6 +21,7 @@ class ProductService {
   Future<void> restockProduct({
     required int productId,
     required int qty,
+    String? actorName,
     String? reference,
   }) async {
     if (qty <= 0) {
@@ -40,6 +41,7 @@ class ProductService {
         type: 'IN',
         qty: parseQty,
         source: 'RESTOCK',
+        actorName: actorName,
         reference: reference,
         createdAt: DateTime.now(),
       ),
@@ -48,11 +50,26 @@ class ProductService {
 
   Future<List<StockMovement>> getStockMovement(int productId) async {
     final db = await dbHelper.database;
-    final result = await db.query(
-      'stock_movements',
-      where: 'product_id = ?',
-      whereArgs: [productId],
-      orderBy: 'datetime(created_at) ASC, id DESC',
+    final result = await db.rawQuery(
+      '''
+      SELECT
+        sm.id,
+        sm.product_id,
+        sm.type,
+        sm.qty,
+        sm.source,
+        sm.reference,
+        sm.created_at,
+        COALESCE(sm.actor_name, u.username) AS actor_name
+      FROM stock_movements sm
+      LEFT JOIN transactions t
+        ON sm.source = 'SALE' AND t.trx_code = sm.reference
+      LEFT JOIN users u
+        ON u.id = t.cashier_id
+      WHERE sm.product_id = ?
+      ORDER BY datetime(sm.created_at) ASC, sm.id DESC
+      ''',
+      [productId],
     );
     return result.map((e) => StockMovement.fromJson(e)).toList();
   }

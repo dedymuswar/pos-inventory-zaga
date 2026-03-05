@@ -3,8 +3,11 @@ import 'package:pos_inventory/features/products/widgets/stock_card.dart';
 import 'logic/product_controller.dart';
 import '../../models/product_model.dart';
 import 'widgets/product_form_modal.dart';
+import 'widgets/product_search_section.dart';
 import 'widgets/product_table.dart';
 import 'widgets/restock_dialog.dart';
+import 'package:pos_inventory/features/user/auth_controller.dart';
+import 'package:provider/provider.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -14,14 +17,36 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
+  static const Color _primaryBlue = Color(0xFF1D61E7);
   final ProductService _service = ProductService();
+  final TextEditingController _searchController = TextEditingController();
   List<Product> _products = [];
   bool _isLoading = true;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadProducts();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Product> get _filteredProducts {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return _products;
+    return _products.where((product) {
+      final name = product.name.toLowerCase();
+      final barcode = product.barcode.toLowerCase();
+      final category = product.category.toLowerCase();
+      return name.contains(query) ||
+          barcode.contains(query) ||
+          category.contains(query);
+    }).toList();
   }
 
   Future<void> _loadProducts() async {
@@ -53,13 +78,14 @@ class _ProductScreenState extends State<ProductScreen> {
       reference: result['reference'] as String?,
     );
   }
-  
+
   Future<void> _restock({
     required Product product,
     required int qty,
     String? reference,
   }) async {
     try {
+      final actorName = context.read<AuthController>().currentUser?.username;
       final productId = product.id;
       if (productId == null) {
         throw Exception('Product ID tidak ditemukan : id kosong');
@@ -67,6 +93,7 @@ class _ProductScreenState extends State<ProductScreen> {
       await _service.restockProduct(
         productId: productId,
         qty: qty,
+        actorName: actorName,
         reference: reference,
       );
 
@@ -100,33 +127,55 @@ class _ProductScreenState extends State<ProductScreen> {
   void _openStockCard(Product product) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => StockCard(product: product),
-      ),
+      MaterialPageRoute(builder: (_) => StockCard(product: product)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Master Barang')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _products.isEmpty
-          ? const Center(child: Text('Belum ada barang'))
-          : Padding(
-              padding: const EdgeInsets.all(12),
-              child: ProductTable(
-                products: _products,
-                onRestock: _openRestockDialog,
-                onStockCard: _openStockCard,
-              ),
+    final visibleProducts = _filteredProducts;
+    final Widget content = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : visibleProducts.isEmpty
+        ? Center(
+            child: Text(
+              _searchQuery.isEmpty
+                  ? 'Belum ada barang'
+                  : 'Barang tidak ditemukan',
             ),
+          )
+        : ProductTable(
+            products: visibleProducts,
+            onRestock: _openRestockDialog,
+            onStockCard: _openStockCard,
+          );
 
-      floatingActionButton: FloatingActionButton.extended(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Master Barang'),
+        backgroundColor: const Color(0xFF1D61E7),
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          ProductSearchSection(
+            controller: _searchController,
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+          ),
+          Expanded(child: content),
+        ],
+      ),
+
+      floatingActionButton: FloatingActionButton(
         onPressed: _openAddProductModal,
-        label: const Text("Tambah Barang"),
-        icon: const Icon(Icons.add),
+        backgroundColor: _primaryBlue,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
       ),
     );
   }

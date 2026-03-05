@@ -22,7 +22,7 @@ class CartSummary extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -37,11 +37,26 @@ class CartSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF3A7CF5),
+            Color(0xFF1D61E7),
+            Color(0xFF164CB7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1D61E7).withOpacity(0.22),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,7 +69,7 @@ class CartSummary extends StatelessWidget {
               fontSize: 18,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           _summaryRow('Subtotal', 'Rp $subtotal'),
           _summaryRow('Diskon (0%)', 'Rp $discount'), // Diskon hardcoded 0 dulu
           _summaryRow('Pajak (0%)', 'Rp $tax'), // Pajak hardcoded 0 dulu

@@ -5,6 +5,7 @@ class StockMovement {
   final int qty;
   final String source;
   final String? reference;
+  final String? actorName;
   final DateTime createdAt;
 
   StockMovement({
@@ -14,6 +15,7 @@ class StockMovement {
     required this.qty,
     required this.source,
     this.reference,
+    this.actorName,
     required this.createdAt,
   });
 
@@ -25,6 +27,7 @@ class StockMovement {
       qty: map['qty'] as int,
       source: map['source'] as String,
       reference: map['reference'] as String?,
+      actorName: map['actor_name'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }

@@ -15,6 +15,7 @@ class StockMovementRepository {
         'qty': movement.qty,
         'source': movement.source,
         'reference': movement.reference,
+        'actor_name': movement.actorName,
         'created_at': movement.createdAt.toIso8601String(),
       });
     

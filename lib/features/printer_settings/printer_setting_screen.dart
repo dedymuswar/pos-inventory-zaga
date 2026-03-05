@@ -11,6 +11,7 @@ class PrinterSettingScreen extends StatefulWidget {
 }
 
 class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
+  static const Color _primaryBlue = Color(0xFF1D61E7);
   List<BluetoothInfo> devices = [];
   BluetoothInfo? selectedDevice;
   bool autoPrint = false;
@@ -96,94 +97,158 @@ class _PrinterSettingScreenState extends State<PrinterSettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Printer Setting")),
-      body: Column(
-        children: [
-          // dropdown printer
-          DropdownButtonFormField <BluetoothInfo>(
-                hint: const Text("Pilih Printer"),
-                value: selectedDevice,
-                items: devices.map((device) {
-                  return DropdownMenuItem(
-                    value: device,
-                    child: Text("${device.name} (${device.macAdress})"),
-                  );
-                }).toList(),
-                onChanged: (value) async {
-                  if (value == null) return;
-
-                  selectedDevice = value;
-                  await PrinterSettingService.savePrinter(value.macAdress);
-                  setState(() {});
-                },
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text("Printer Setting"),
+        backgroundColor: _primaryBlue,
+        foregroundColor: Colors.white,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFEAF1FF), Color(0xFFDDE9FF)],
+                ),
+                border: Border.all(color: const Color(0xFFBBD0FF)),
               ),
+              child: Column(
+                children: [
+                  DropdownButtonFormField<BluetoothInfo>(
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: "Pilih Printer",
+                      hintStyle: const TextStyle(color: Color(0xFF6D84B3)),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFD0DEFF)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: _primaryBlue),
+                      ),
+                    ),
+                    value: selectedDevice,
+                    items: devices.map((device) {
+                      return DropdownMenuItem(
+                        value: device,
+                        child: Text("${device.name} (${device.macAdress})"),
+                      );
+                    }).toList(),
+                    onChanged: (value) async {
+                      if (value == null) return;
 
-          const SizedBox(height: 10),
+                      selectedDevice = value;
+                      await PrinterSettingService.savePrinter(value.macAdress);
+                      setState(() {});
+                    },
+                  ),
 
-          // refresh button
-          Align(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: loadDevices,
+                  const SizedBox(height: 10),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: _primaryBlue,
+                      ),
+                      icon: const Icon(Icons.refresh),
+                      onPressed: loadDevices,
+                    ),
+                  ),
+
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: _primaryBlue,
+                    title: const Text("Auto Print"),
+                    value: autoPrint,
+                    onChanged: (value) async {
+                      autoPrint = value ?? false;
+                      await PrinterSettingService.setAutoPrint(autoPrint);
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // Auto print checkbox
-          CheckboxListTile(
-            title: const Text("Auto Print"),
-            value: autoPrint,
-            onChanged: (value) async {
-              autoPrint = value ?? false;
-              await PrinterSettingService.setAutoPrint(autoPrint);
-              setState(() {});
-            },
-          ),
+            const SizedBox(height: 14),
 
-          const SizedBox(height: 10),
-
-          // status
-          Text(
-            isConnected ? "Status: Connected" : "Status: Disconnected",
-            style: TextStyle(
-              color: isConnected ? Colors.green : Colors.red,
-              fontWeight: FontWeight.bold,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                isConnected ? "Status: Connected" : "Status: Disconnected",
+                style: TextStyle(
+                  color: isConnected ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-          ),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
-          // Connect
-          SizedBox(
+            SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: connectPrinter,
-                child: const Text("CONNECT"),
-              ),
+              child: isConnected
+                  ? OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _primaryBlue,
+                        side: const BorderSide(color: _primaryBlue),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: disconnectPrinter,
+                      child: const Text("DISCONNECT"),
+                    )
+                  : ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryBlue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                      ),
+                      onPressed: selectedDevice == null ? null : connectPrinter,
+                      child: const Text("CONNECT"),
+                    ),
             ),
 
             const SizedBox(height: 10),
 
-            // Disconnect
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                onPressed: disconnectPrinter,
-                child: const Text("DISCONNECT"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryBlue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  elevation: 0,
+                ),
+                onPressed: testPrint,
+                child: const Text("Test Print"),
               ),
             ),
-
-            const SizedBox(height: 10),
-
-            // test print
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                onPressed: testPrint, child: const Text("TestPrint"))
-            )
-        ],
+          ],
+        ),
       ),
     );
   }

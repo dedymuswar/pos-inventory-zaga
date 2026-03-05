@@ -23,7 +23,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 6,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -47,8 +47,7 @@ class DatabaseHelper {
       CREATE TABLE transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         trx_code TEXT NOT NULL,
-        cashier_id TEXT,
-        cashier_name TEXT,
+        cashier_id INTEGER,
         created_at TEXT,
         total_amount INTEGER,
         received_money INTEGER,
@@ -78,20 +77,31 @@ class DatabaseHelper {
         qty INTEGER NOT NULL,
         source TEXT NOT NULL,
         reference TEXT,
+        actor_name TEXT,
         created_at TEXT NOT NULL,
         FOREIGN KEY (product_id) REFERENCES products(id)
       )
     ''');
+
+    await db.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL UNIQUE,
+          password TEXT NOT NULL,
+          role TEXT NOT NULL
+        )
+      ''');
+
+    await seedDefaultUsers(db);
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('''
-        CREATE TABLE transactions (
+        CREATE TABLE IF NOT EXISTS transactions (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           trx_code TEXT NOT NULL,
-          cashier_id TEXT,
-          cashier_name TEXT,
+          cashier_id INTEGER,
           created_at TEXT,
           total_amount INTEGER,
           received_money INTEGER,
@@ -101,7 +111,7 @@ class DatabaseHelper {
       ''');
 
       await db.execute('''
-        CREATE TABLE transaction_items (
+        CREATE TABLE IF NOT EXISTS transaction_items (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           transaction_id INTEGER,
           product_id INTEGER,
@@ -123,10 +133,46 @@ class DatabaseHelper {
           qty INTEGER NOT NULL,
           source TEXT NOT NULL,
           reference TEXT,
+          actor_name TEXT,
           created_at TEXT NOT NULL,
           FOREIGN KEY (product_id) REFERENCES products(id)
         )
       ''');
+    }
+    if (oldVersion < 4) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL UNIQUE,
+          password TEXT NOT NULL,
+          role TEXT NOT NULL
+        )
+      ''');
+      await seedDefaultUsers(db);
+    }
+    if (oldVersion < 5) {
+      // Recovery migration: older builds may have version metadata updated
+      // without creating users table.
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL UNIQUE,
+          password TEXT NOT NULL,
+          role TEXT NOT NULL
+        )
+      ''');
+      await seedDefaultUsers(db);
+    }
+    if (oldVersion < 6) {
+      final columns = await db.rawQuery('PRAGMA table_info(stock_movements)');
+      final hasActorName = columns.any(
+        (column) => column['name'] == 'actor_name',
+      );
+      if (!hasActorName) {
+        await db.execute(
+          'ALTER TABLE stock_movements ADD COLUMN actor_name TEXT',
+        );
+      }
     }
   }
 
@@ -153,11 +199,20 @@ class DatabaseHelper {
   }) async {
     final db = await instance.database;
     await db.transaction((txn) async {
+      // Validasi cashier_id untuk transaksi OUT (sale)
+      if (trx.cashierId.trim().isEmpty) {
+        throw Exception('cashier_id wajib untuk transaksi OUT');
+      }
+
+      final cashierId = int.tryParse(trx.cashierId);
+      if (cashierId == null) {
+        throw Exception('cashier_id harus berupa angka valid');
+      }
+
       //insert tabel transaction
       final trxId = await txn.insert('transactions', {
         'trx_code': trx.trxCode,
-        'cashier_id': trx.cashierId,
-        'cashier_name': trx.cashierName,
+        'cashier_id': cashierId,
         'created_at': trx.createdAt.toIso8601String(),
         'total_amount': trx.totalAmount,
         'received_money': receivedMoney,
@@ -206,6 +261,7 @@ class DatabaseHelper {
           'qty': item.qty,
           'source': 'SALE',
           'reference': trx.trxCode,
+          'actor_name': trx.cashierName,
           'created_at': trx.createdAt.toIso8601String(),
         });
       }
@@ -220,11 +276,25 @@ class DatabaseHelper {
   Future<Transactionfinal?> getTransactionDetail(String trxCode) async {
     final db = await database;
 
-    // 🔹 1. Ambil header
-    final headerResult = await db.query(
-      'transactions',
-      where: 'trx_code = ?',
-      whereArgs: [trxCode],
+    // Ambil header transaksi + nama kasir jika tersedia
+    final headerResult = await db.rawQuery(
+      '''
+      SELECT
+        t.id,
+        t.trx_code,
+        t.cashier_id,
+        u.username AS cashier_name,
+        t.created_at,
+        t.total_amount,
+        t.received_money,
+        t.change,
+        t.payment_method
+      FROM transactions t
+      LEFT JOIN users u ON u.id = t.cashier_id
+      WHERE t.trx_code = ?
+      LIMIT 1
+      ''',
+      [trxCode],
     );
 
     if (headerResult.isEmpty) return null;
@@ -238,9 +308,99 @@ class DatabaseHelper {
       whereArgs: [header.id],
     );
 
-    final items = itemResult.map((e) => TransactionDetailItems.fromMap(e)).toList();
+    final items = itemResult
+        .map((e) => TransactionDetailItems.fromMap(e))
+        .toList();
 
     // 🔹 3. Gabungkan
     return Transactionfinal(header: header, items: items);
+  }
+
+  Future<void> seedDefaultUsers(Database db) async {
+    final count = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM users'),
+    );
+
+    if (count == 0) {
+      await db.insert('users', {
+        'username': 'admin',
+        'password': 'admin',
+        'role': 'admin',
+      });
+
+      await db.insert('users', {
+        'username': 'kasir',
+        'password': 'kasir',
+        'role': 'kasir',
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>?> loginUser({
+    required String username,
+    required String password,
+  }) async {
+    final db = await database;
+    final safeUsername = username.trim();
+    final safePassword = password.trim();
+    final result = await db.query(
+      'users',
+      where: 'username = ? AND password = ?',
+      whereArgs: [safeUsername, safePassword],
+    );
+
+    if (result.isEmpty) return null;
+
+    return result.first;
+  }
+
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    final db = await instance.database;
+    return await db.query('users', orderBy: 'id ASC');
+  }
+
+  Future<Map<String, dynamic>?> getUserByUsername(String username) async {
+    final db = await database;
+    final result = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username.trim()],
+      limit: 1,
+    );
+    if (result.isEmpty) return null;
+    return result.first;
+  }
+
+  Future<int> insertUser({
+    required String username,
+    required String password,
+    required String role, // 'admin' / 'kasir'
+  }) async {
+    final db = await database;
+    return db.insert('users', {
+      'username': username.trim(),
+      'password': password.trim(),
+      'role': role,
+    });
+  }
+
+  Future<int> updateUser({
+    required int id,
+    required String username,
+    required String password,
+    required String role,
+  }) async {
+    final db = await database;
+    return db.update(
+      'users',
+      {'username': username.trim(), 'password': password.trim(), 'role': role},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteUser(int id) async {
+    final db = await database;
+    return db.delete('users', where: 'id = ?', whereArgs: [id]);
   }
 }
