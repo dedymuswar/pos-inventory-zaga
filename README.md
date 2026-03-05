@@ -1,16 +1,34 @@
-# pos_inventory
+# Flutter POS Inventory App ZAGA
 
-A new Flutter project.
+A Point of Sale (POS) and Inventory Management application built using Flutter and SQLite.
 
-## Getting Started
+## Features
+- Product Management
+- POS Transactions
+- Stock Movement Tracking
+- Restock Inventory
+- Dashboard Summary
+- Print Thermal Bluetooth Receipt
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+## Tech Stack
+- Flutter
+- Dart
+- SQLite
+- Provider
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Screenshots
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## App Preview
+
+<p align="center">
+  <img src="assets/screenshoots/dashboard.png" width="250"/>
+  <img src="assets/screenshoots/master-barang.png" width="250"/>
+  <img src="assets/screenshoots/cart-trx.png" width="250"/>
+  <img src="assets/screenshoots/stock-card.png" width="250"/>
+  <img src="assets/screenshoots/login.png" width="250"/>
+  <img src="assets/screenshoots/payment.png" width="250"/>
+  <img src="assets/screenshoots/printer-setting.png" width="250"/>
+  <img src="assets/screenshoots/riwayat-trx.png" width="250"/>
+  <img src="assets/screenshoots/wrapper.png" width="250"/>
+</p>
