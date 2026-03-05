@@ -9,6 +9,7 @@ A Point of Sale (POS) and Inventory Management application built using Flutter a
 - Restock Inventory
 - Dashboard Summary
 - Print Thermal Bluetooth Receipt
+- Manage Users and Permissions
 
 
 ## Tech Stack
