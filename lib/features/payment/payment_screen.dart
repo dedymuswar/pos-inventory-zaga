@@ -37,7 +37,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   int _receivedMoney = 0;
   bool _isLoading = false;
 
-  int get _change => _receivedMoney - widget.transaction.totalAmount;
+  int get _effectiveTotal => widget.cartController.total;
+  int get _change => _receivedMoney - _effectiveTotal;
   bool get _isEnough => _change >= 0;
 
   void _addMoney(int amount) {
@@ -63,9 +64,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (!_isEnough || _isLoading) return;
 
     setState(() => _isLoading = true);
+    final trx = PendingTransaction(
+      trxCode: widget.transaction.trxCode,
+      cashierId: widget.transaction.cashierId,
+      cashierName: widget.transaction.cashierName,
+      createdAt: widget.transaction.createdAt,
+      items: widget.transaction.items,
+      totalAmount: _effectiveTotal,
+    );
     final success = await _controller.prosesPembayaran(
-      widget.transaction,
+      trx,
       _receivedMoney,
+      subtotal: widget.cartController.subtotal,
+      discountAmount: widget.cartController.discount,
+      taxAmount: widget.cartController.tax,
     );
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -117,7 +129,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final trx = widget.transaction;
-    final quickAmounts = <int>[10000, 20000, 50000, trx.totalAmount];
+    final quickAmounts = <int>[10000, 20000, 50000, _effectiveTotal];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FF),
@@ -140,7 +152,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   const SizedBox(height: 12),
                   _BillCard(
-                    totalAmount: _currencyFormatter.format(trx.totalAmount),
+                    totalAmount: _currencyFormatter.format(_effectiveTotal),
                   ),
                   const SizedBox(height: 12),
                   _ReceivedCard(

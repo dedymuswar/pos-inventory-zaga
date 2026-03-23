@@ -18,7 +18,13 @@ class PaymentController extends ChangeNotifier {
     return _terimaUang >= totalAmount;
   }
 
-  Future<bool> prosesPembayaran(PendingTransaction trx, int receivedMoney) async {
+  Future<bool> prosesPembayaran(
+    PendingTransaction trx,
+    int receivedMoney, {
+    required int subtotal,
+    required int discountAmount,
+    required int taxAmount,
+  }) async {
     // validasi uang
     if (receivedMoney < trx.totalAmount) {
       return false;
@@ -31,6 +37,9 @@ class PaymentController extends ChangeNotifier {
         receivedMoney: receivedMoney,
         change: receivedMoney - trx.totalAmount,
         paymentMethod: 'Cash',
+        subtotal: subtotal,
+        discountAmount: discountAmount,
+        taxAmount: taxAmount,
       );
       return true;
     } catch (e) {

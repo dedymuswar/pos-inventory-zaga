@@ -1,26 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:pos_inventory/core/database/database_helper.dart';
 import 'package:pos_inventory/models/cart_item.dart';
+import 'package:pos_inventory/models/discount_tax_setting.dart';
 import 'package:pos_inventory/models/product_model.dart';
+import 'package:pos_inventory/repository/discount_tax_repository.dart';
 
-enum AddToCartResult {
-  success,
-  productNotFound,
-  outOfStock,
-}
+enum AddToCartResult { success, productNotFound, outOfStock }
 
 class CartController extends ChangeNotifier {
   final List<CartItem> _items = [];
   final Map<int, int> _stockByProductId = {};
   final String cashierId = '001';
   final String cashierName = 'Kasir Dedy';
+  final DiscountTaxRepository _discountTaxRepo;
+
+  DiscountTaxSetting? _setting;
+
+  CartController(this._discountTaxRepo) {
+    loadDiscountTax();
+  }
 
   List<CartItem> get items => List.unmodifiable(_items);
 
+  Future<void> loadDiscountTax() async {
+    _setting = await _discountTaxRepo.getSettings();
+    notifyListeners();
+  }
+
   int get subtotal => _items.fold(0, (sum, item) => sum + item.total);
-  int get discount => 0; // Logic diskon bisa ditambahkan nanti
-  int get tax => 0; // Logic pajak bisa ditambahkan nanti
+
+  int get discount {
+    final s = _setting;
+    if (s == null) return 0;
+    if (s.discountType == 'percent') {
+      return (subtotal * s.discountValue / 100).round();
+    }
+    return s.discountValue.round();
+  }
+
+  int get tax {
+    final s = _setting;
+    if (s == null) return 0;
+
+    final base = (subtotal - discount).clamp(0, double.infinity);
+    if (s.taxType == 'percent') {
+      return (base * s.taxValue / 100).round();
+    }
+    return s.taxValue.round();
+  }
+
   int get total => subtotal - discount + tax;
+
+  String get discountLabel {
+    final s = _setting;
+    if (s == null) return 'Diskon';
+    final value = _formatSettingValue(s.discountValue);
+    if (s.discountType == 'percent') {
+      return 'Diskon ($value%)';
+    }
+    return 'Diskon (Rp $value)';
+  }
+
+  String get taxLabel {
+    final s = _setting;
+    if (s == null) return 'Pajak';
+    final value = _formatSettingValue(s.taxValue);
+    if (s.taxType == 'percent') {
+      return 'Pajak ($value%)';
+    }
+    return 'Pajak (Rp $value)';
+  }
+
+  String _formatSettingValue(double value) {
+    if (value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
+    return value.toString();
+  }
 
   /// Mencari produk berdasarkan barcode dan menambahkannya ke keranjang
   /// Mengembalikan true jika produk ditemukan, false jika tidak

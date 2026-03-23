@@ -5,13 +5,17 @@ class CartSummary extends StatelessWidget {
     super.key,
     required this.subtotal,
     required this.discount,
+    required this.discountLabel,
     required this.tax,
+    required this.taxLabel,
     required this.total,
   });
 
   final int subtotal;
   final int discount;
+  final String discountLabel;
   final int tax;
+  final String taxLabel;
   final int total;
 
   Widget _summaryRow(String label, String value, {bool isTotal = false}) {
@@ -71,8 +75,8 @@ class CartSummary extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _summaryRow('Subtotal', 'Rp $subtotal'),
-          _summaryRow('Diskon (0%)', 'Rp $discount'), // Diskon hardcoded 0 dulu
-          _summaryRow('Pajak (0%)', 'Rp $tax'), // Pajak hardcoded 0 dulu
+          _summaryRow(discountLabel, 'Rp $discount'),
+          _summaryRow(taxLabel, 'Rp $tax'),
           const Divider(color: Color.fromARGB(255, 255, 255, 255)),
           _summaryRow('Total', 'Rp $total', isTotal: true),
         ],
