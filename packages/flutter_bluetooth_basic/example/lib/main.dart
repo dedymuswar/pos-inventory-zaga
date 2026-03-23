@@ -4,9 +4,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_basic/flutter_bluetooth_basic.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -14,13 +16,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Bluetooth Scanner'),
+      home: const MyHomePage(title: 'Bluetooth Scanner'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({super.key, required this.title});
   final String title;
 
   @override
@@ -31,7 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   BluetoothManager bluetoothManager = BluetoothManager.instance;
 
   bool _connected = false;
-  BluetoothDevice _device;
+  BluetoothDevice? _device;
   String tips = 'no device connect';
 
   @override
@@ -50,21 +52,16 @@ class _MyHomePageState extends State<MyHomePage> {
     bluetoothManager.state.listen((state) {
       print('cur device status: $state');
 
-      switch (state) {
-        case BluetoothManager.CONNECTED:
-          setState(() {
-            _connected = true;
-            tips = 'connect success';
-          });
-          break;
-        case BluetoothManager.DISCONNECTED:
-          setState(() {
-            _connected = false;
-            tips = 'disconnect success';
-          });
-          break;
-        default:
-          break;
+      if (state == BluetoothManager.CONNECTED) {
+        setState(() {
+          _connected = true;
+          tips = 'connect success';
+        });
+      } else if (state == BluetoothManager.DISCONNECTED) {
+        setState(() {
+          _connected = false;
+          tips = 'disconnect success';
+        });
       }
     });
 
@@ -78,8 +75,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onConnect() async {
-    if (_device != null && _device.address != null) {
-      await bluetoothManager.connect(_device);
+    if (_device?.address != null) {
+      await bluetoothManager.connect(_device!);
     } else {
       setState(() {
         tips = 'please select device';
@@ -128,26 +125,28 @@ class _MyHomePageState extends State<MyHomePage> {
               StreamBuilder<List<BluetoothDevice>>(
                 stream: bluetoothManager.scanResults,
                 initialData: [],
-                builder: (c, snapshot) => Column(
-                  children: snapshot.data
-                      .map((d) => ListTile(
-                            title: Text(d.name ?? ''),
-                            subtitle: Text(d.address),
-                            onTap: () async {
-                              setState(() {
-                                _device = d;
-                              });
-                            },
-                            trailing:
-                                _device != null && _device.address == d.address
-                                    ? Icon(
-                                        Icons.check,
-                                        color: Colors.green,
-                                      )
-                                    : null,
-                          ))
-                      .toList(),
-                ),
+                builder: (c, snapshot) {
+                  final devices = snapshot.data ?? const <BluetoothDevice>[];
+                  return Column(
+                    children: devices
+                        .map((d) => ListTile(
+                              title: Text(d.name ?? ''),
+                              subtitle: Text(d.address ?? ''),
+                              onTap: () async {
+                                setState(() {
+                                  _device = d;
+                                });
+                              },
+                              trailing: _device?.address == d.address
+                                  ? const Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                    )
+                                  : null,
+                            ))
+                        .toList(),
+                  );
+                },
               ),
               Divider(),
               Container(
@@ -157,20 +156,20 @@ class _MyHomePageState extends State<MyHomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        OutlineButton(
-                          child: Text('connect'),
+                        OutlinedButton(
                           onPressed: _connected ? null : _onConnect,
+                          child: const Text('connect'),
                         ),
                         SizedBox(width: 10.0),
-                        OutlineButton(
-                          child: Text('disconnect'),
+                        OutlinedButton(
                           onPressed: _connected ? _onDisconnect : null,
+                          child: const Text('disconnect'),
                         ),
                       ],
                     ),
-                    OutlineButton(
-                      child: Text('Send test data'),
+                    OutlinedButton(
                       onPressed: _connected ? _sendData : null,
+                      child: const Text('Send test data'),
                     ),
                   ],
                 ),
@@ -183,15 +182,15 @@ class _MyHomePageState extends State<MyHomePage> {
         stream: bluetoothManager.isScanning,
         initialData: false,
         builder: (c, snapshot) {
-          if (snapshot.data) {
+          if (snapshot.data == true) {
             return FloatingActionButton(
-              child: Icon(Icons.stop),
+              child: const Icon(Icons.stop),
               onPressed: () => bluetoothManager.stopScan(),
               backgroundColor: Colors.red,
             );
           } else {
             return FloatingActionButton(
-                child: Icon(Icons.search),
+                child: const Icon(Icons.search),
                 onPressed: () =>
                     bluetoothManager.startScan(timeout: Duration(seconds: 4)));
           }
