@@ -22,6 +22,9 @@ final theme = ThemeData(
   ),
 );
 
+final RouteObserver<PageRoute<dynamic>> routeObserver =
+    RouteObserver<PageRoute<dynamic>>();
+
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID');
@@ -44,6 +47,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'POS MASTER BARANG',
       theme: theme,
+      navigatorObservers: [routeObserver],
       home: LoginPage(),
     );
   }

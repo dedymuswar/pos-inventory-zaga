@@ -23,7 +23,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 8,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -49,6 +49,9 @@ class DatabaseHelper {
         trx_code TEXT NOT NULL,
         cashier_id INTEGER,
         created_at TEXT,
+        subtotal INTEGER,
+        discount_amount INTEGER,
+        tax_amount INTEGER,
         total_amount INTEGER,
         received_money INTEGER,
         change INTEGER,
@@ -93,6 +96,26 @@ class DatabaseHelper {
       ''');
 
     await seedDefaultUsers(db);
+
+    await db.execute('''
+      CREATE TABLE discount_tax_settings (
+        id INTEGER PRIMARY KEY,
+        discount_type TEXT NOT NULL,
+        discount_value REAL NOT NULL,
+        tax_type TEXT NOT NULL,
+        tax_value REAL NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+
+    await db.insert('discount_tax_settings', {
+      'id': 1,
+      'discount_type': 'percent',
+      'discount_value': 0,
+      'tax_type': 'percent',
+      'tax_value': 0,
+      'updated_at': DateTime.now().millisecondsSinceEpoch,
+    });
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -103,6 +126,9 @@ class DatabaseHelper {
           trx_code TEXT NOT NULL,
           cashier_id INTEGER,
           created_at TEXT,
+          subtotal INTEGER,
+          discount_amount INTEGER,
+          tax_amount INTEGER,
           total_amount INTEGER,
           received_money INTEGER,
           change INTEGER,
@@ -174,6 +200,49 @@ class DatabaseHelper {
         );
       }
     }
+
+    if (oldVersion < 7) {
+      await db.execute('''
+        CREATE TABLE discount_tax_settings (
+          id INTEGER PRIMARY KEY,
+          discount_type TEXT NOT NULL,   
+          discount_value REAL NOT NULL, 
+          tax_type TEXT NOT NULL,      
+          tax_value REAL NOT NULL,     
+          updated_at INTEGER NOT NULL
+        );
+      ''');
+
+      await db.insert('discount_tax_settings', {
+        'id': 1,
+        'discount_type': 'percent',
+        'discount_value': 0,
+        'tax_type': 'percent',
+        'tax_value': 0,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      });
+    }
+
+    if (oldVersion < 8) {
+      final columns = await db.rawQuery('PRAGMA table_info(transactions)');
+      final hasSubtotal = columns.any((c) => c['name'] == 'subtotal');
+      final hasDiscount = columns.any((c) => c['name'] == 'discount_amount');
+      final hasTax = columns.any((c) => c['name'] == 'tax_amount');
+
+      if (!hasSubtotal) {
+        await db.execute('ALTER TABLE transactions ADD COLUMN subtotal INTEGER');
+      }
+      if (!hasDiscount) {
+        await db.execute(
+          'ALTER TABLE transactions ADD COLUMN discount_amount INTEGER',
+        );
+      }
+      if (!hasTax) {
+        await db.execute(
+          'ALTER TABLE transactions ADD COLUMN tax_amount INTEGER',
+        );
+      }
+    }
   }
 
   Future<Product?> getProductByBarcode(String barcode) async {
@@ -196,6 +265,9 @@ class DatabaseHelper {
     required int receivedMoney,
     required int change,
     required String paymentMethod,
+    required int subtotal,
+    required int discountAmount,
+    required int taxAmount,
   }) async {
     final db = await instance.database;
     await db.transaction((txn) async {
@@ -214,6 +286,9 @@ class DatabaseHelper {
         'trx_code': trx.trxCode,
         'cashier_id': cashierId,
         'created_at': trx.createdAt.toIso8601String(),
+        'subtotal': subtotal,
+        'discount_amount': discountAmount,
+        'tax_amount': taxAmount,
         'total_amount': trx.totalAmount,
         'received_money': receivedMoney,
         'change': change,
@@ -285,6 +360,9 @@ class DatabaseHelper {
         t.cashier_id,
         u.username AS cashier_name,
         t.created_at,
+        t.subtotal,
+        t.discount_amount,
+        t.tax_amount,
         t.total_amount,
         t.received_money,
         t.change,

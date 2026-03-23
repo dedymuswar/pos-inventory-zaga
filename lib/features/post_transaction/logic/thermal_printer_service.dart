@@ -75,6 +75,35 @@ class ThermalPrinterService {
     bytes += generator.hr();
 
     bytes += generator.row([
+      PosColumn(text: "SUBTOTAL", width: 6),
+      PosColumn(
+        text: trx.header.subtotal.toString(),
+        width: 6,
+        styles: const PosStyles(align: PosAlign.right),
+      ),
+    ]);
+
+    bytes += generator.row([
+      PosColumn(text: "DISKON", width: 6),
+      PosColumn(
+        text: trx.header.discount_amount.toString(),
+        width: 6,
+        styles: const PosStyles(align: PosAlign.right),
+      ),
+    ]);
+
+    bytes += generator.row([
+      PosColumn(text: "PAJAK", width: 6),
+      PosColumn(
+        text: trx.header.tax_amount.toString(),
+        width: 6,
+        styles: const PosStyles(align: PosAlign.right),
+      ),
+    ]);
+
+    bytes += generator.hr();
+
+    bytes += generator.row([
       PosColumn(text: "TOTAL", width: 6),
       PosColumn(
         text: trx.header.total_amount.toString(),

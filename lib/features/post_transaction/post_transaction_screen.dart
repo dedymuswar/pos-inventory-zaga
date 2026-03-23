@@ -147,6 +147,10 @@ class _PostTransactionScreenState extends State<PostTransactionScreen> {
   }
 
   Widget _itemSection(List<TransactionDetailItems> items) {
+    final header = trxDetail?.header;
+    final subtotal = header?.subtotal ?? 0;
+    final discountAmount = header?.discount_amount ?? 0;
+    final taxAmount = header?.tax_amount ?? 0;
     return Card(
       color: Colors.grey[900],
       child: Padding(
@@ -174,8 +178,39 @@ class _PostTransactionScreenState extends State<PostTransactionScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+            const Divider(color: Colors.white24),
+            _summaryRow("Subtotal", subtotal),
+            _summaryRow("Diskon", discountAmount),
+            _summaryRow("Pajak", taxAmount),
+            _summaryRow(
+              "Total",
+              trxDetail?.header.total_amount ?? 0,
+              isEmphasis: true,
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, int value, {bool isEmphasis = false}) {
+    final textStyle = TextStyle(
+      color: isEmphasis ? Colors.white : Colors.white70,
+      fontWeight: isEmphasis ? FontWeight.w700 : FontWeight.w500,
+    );
+    final valueStyle = TextStyle(
+      color: isEmphasis ? Colors.white : Colors.pinkAccent,
+      fontWeight: isEmphasis ? FontWeight.w700 : FontWeight.w600,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: textStyle),
+          Text("Rp $value", style: valueStyle),
+        ],
       ),
     );
   }

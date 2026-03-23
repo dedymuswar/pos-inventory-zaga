@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_inventory/core/database/database_helper.dart';
 import 'package:pos_inventory/features/cart/logic/cart_controller.dart';
 import 'package:pos_inventory/features/payment/payment_screen.dart';
 import 'package:pos_inventory/features/products/widgets/scan_barcode_page.dart';
@@ -11,6 +12,8 @@ import 'package:pos_inventory/features/cart/widgets/cart_item_widget.dart';
 import 'package:pos_inventory/features/cart/logic/cart_mapper.dart';
 import 'package:pos_inventory/features/user/auth_controller.dart';
 import 'package:pos_inventory/models/product_model.dart';
+import 'package:pos_inventory/repository/discount_tax_repository.dart';
+import 'package:pos_inventory/main.dart';
 import 'package:provider/provider.dart';
 
 class CartScreen extends StatefulWidget {
@@ -20,11 +23,11 @@ class CartScreen extends StatefulWidget {
   State<CartScreen> createState() => _CartScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
+class _CartScreenState extends State<CartScreen> with RouteAware {
   static const Color _primaryBlue = Color(0xFF1D61E7);
   static const Color _primaryBlueLight = Color(0xFF3A7CF5);
   static const Color _primaryBlueDark = Color(0xFF164CB7);
-  final CartController _controller = CartController();
+  final CartController _controller = CartController(DiscountTaxRepository(DatabaseHelper.instance));
   final ProductService _productService = ProductService();
 
   Future<void> _bayarSekarang() async {
@@ -63,9 +66,24 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _controller.loadDiscountTax();
   }
 
   Future<void> _scanAndAddItem() async {
@@ -273,7 +291,9 @@ class _CartScreenState extends State<CartScreen> {
                 CartSummary(
                   subtotal: _controller.subtotal,
                   discount: _controller.discount,
+                  discountLabel: _controller.discountLabel,
                   tax: _controller.tax,
+                  taxLabel: _controller.taxLabel,
                   total: _controller.total,
                 ),
                 Container(

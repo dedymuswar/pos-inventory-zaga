@@ -3,6 +3,7 @@ import 'package:pos_inventory/features/auth/pages/login_page.dart';
 import 'package:pos_inventory/features/auth/pages/manage_users_page.dart';
 import 'package:pos_inventory/features/cart/cart_screen.dart';
 import 'package:pos_inventory/features/dashboard/dashboard_screen.dart';
+import 'package:pos_inventory/features/discount_tax/discount_tax_setting_screen.dart';
 import 'package:pos_inventory/features/printer_settings/printer_setting_screen.dart';
 import 'package:pos_inventory/features/products/product_screen.dart';
 import 'package:pos_inventory/features/list_transaction/list_transaction_screen.dart';
@@ -115,6 +116,14 @@ class AppDrawer extends StatelessWidget {
                     title: 'Pengaturan printer',
                     onTap: () {
                       _openPage(context, const PrinterSettingScreen());
+                    },
+                  ),
+                  const Divider(height: 10, color: Color(0xFFE2E8F7)),
+                  _DrawerMenuTile(
+                    icon: Icons.percent,
+                    title: 'Diskon & Pajak',
+                    onTap: () {
+                      _openPage(context, const DiscountTaxSettingScreen());
                     },
                   ),
                   const Divider(height: 10, color: Color(0xFFE2E8F7)),

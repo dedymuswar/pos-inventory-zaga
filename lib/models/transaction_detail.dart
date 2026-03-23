@@ -4,6 +4,9 @@ class TransactionDetail {
   final int cashierId;
   final String? cashierName;
   final DateTime createdAt;
+  final int subtotal;
+  final int discount_amount;
+  final int tax_amount;
   final int total_amount;
   final int received_money;
   final int change;
@@ -15,6 +18,9 @@ class TransactionDetail {
     required this.cashierId,
     this.cashierName,
     required this.createdAt,
+    required this.subtotal,
+    required this.discount_amount,
+    required this.tax_amount,
     required this.total_amount,
     required this.received_money,
     required this.change,
@@ -31,6 +37,9 @@ class TransactionDetail {
           : int.tryParse(rawCashierId?.toString() ?? '') ?? 0,
       cashierName: map['cashier_name'],
       createdAt: DateTime.parse(map['created_at']),
+      subtotal: map['subtotal'] ?? 0,
+      discount_amount: map['discount_amount'] ?? 0,
+      tax_amount: map['tax_amount'] ?? 0,
       total_amount: map['total_amount'],
       received_money: map['received_money'],
       change: map['change'],
@@ -81,4 +90,3 @@ class Transactionfinal {
     required this.items,
   });
 }
-
